@@ -52,7 +52,7 @@ contract TicketTransfer is TicketCreation, ERC721 {
         emit Transfer(_from, _to, _ticketId);
     }
 
-    function confirmDeliveredDate(uint256 _ticketId) private ownsTicket(_ticketId) {
+    function confirmDeliveredDate(uint256 _ticketId) internal ownsTicket(_ticketId) {
         date = now;
         ticketToDeliveryDate[_ticketId] = date;
     }
