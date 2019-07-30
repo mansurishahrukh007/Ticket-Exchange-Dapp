@@ -58,7 +58,7 @@ contract TicketTransfer is TicketCreation, ERC721 {
     }
 
     /* Below function is called by buyer when ticket is received and confirmed valid by buyer */
-    function confirmValid(address payable _from, uint256 _ticketId) external payable ownsTicket(_ticketId) {
+    function confirmValid(address payable _from, uint256 _ticketId) public payable ownsTicket(_ticketId) {
         require(addressToPendingPrice[_from] > 0, "There is no pending money to be received."); /* Requires there to be unreleased money */
         require(msg.sender == ticketsToOwner[_ticketId], "You did not purchase this ticket."); /* Only the buyer can confirm ticket validity */
         _from.transfer(addressToPendingPrice[_from]); /* Price gets released to seller after buyer confirmation*/
@@ -68,7 +68,7 @@ contract TicketTransfer is TicketCreation, ERC721 {
     }
 
     /* Below function can be called by seller when ticket is not confirmed by buyer within 14 days of delivery */
-    function autoConfirmValid(address payable _from, uint256 _ticketId) external payable {
+    function autoConfirmValid(address payable _from, uint256 _ticketId) public payable {
         require(addressToPendingPrice[_from] > 0, "There is no pending money to be received."); /* Requires there to be unreleased money */
         require(now > (ticketToDeliveryDate[_ticketId] + 10 days), "You need to wait longer."); /* Requires more than 14 days */
         _from.transfer(addressToPendingPrice[_from]); /* Price gets released to seller after auto confirmation */
