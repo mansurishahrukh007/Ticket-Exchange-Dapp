@@ -1,0 +1,58 @@
+[
+  {
+    "id": 0,
+    "picture": "images/tickets/1.jpeg",
+    "event": "Telluride Jazz Festival",
+    "description": "Front Row Seats",
+    "price": "US$100"
+  },
+  {
+    "id": 1,
+    "picture": "images/tickets/2.jpeg",
+    "event": "Austin City Limits",
+    "description": "Second Row Seats",
+    "price": "US$90"
+  },
+  {
+    "id": 2,
+    "picture": "images/tickets/3.jpeg",
+    "event": "Printed Electronics",
+    "description": "Last Row Seats",
+    "price": "US$50"
+  },
+  {
+    "id": 3,
+    "picture": "images/tickets/4.jpeg",
+    "event": "USA CBD Expo",
+    "description": "Middle Row Seats",
+    "price": "US$70"
+  },
+  {
+    "id": 4,
+    "picture": "images/tickets/8.jpeg",
+    "event": "Electric Zoo",
+    "description": "Front Row Seats",
+    "price": "US$100"
+  },
+  {
+    "id": 5,
+    "picture": "images/tickets/6.jpeg",
+    "event": "FABTECH Chicago",
+    "description": "Middle Row Seats",
+    "price": "US$70"
+  },
+  {
+    "id": 6,
+    "picture": "images/tickets/7.jpeg",
+    "event": "FanExpo Boston",
+    "description": "Last Row Seats",
+    "price": "US$50"
+  },
+  {
+    "id": 7,
+    "picture": "images/tickets/5.jpeg",
+    "event": "Graphene USA",
+    "description": "Second Row Seats",
+    "price": "US$90"
+  }
+]
