@@ -1,6 +1,6 @@
 pragma solidity >=0.4.21 <0.6.0;
 
-contract TicketCreationSimplified {
+contract TicketCreation {
 
   /* Emit events when new accounts and new tickets have been created */
   event NewAccount(uint256 indexed userId, string indexed firstName, string indexed lastName);

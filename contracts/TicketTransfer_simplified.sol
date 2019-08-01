@@ -3,7 +3,7 @@ pragma solidity >=0.4.21 <0.6.0;
 import "./TicketCreation_simplified.sol";
 import "./erc721.sol";
 
-contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
+contract TicketTransfer is TicketCreation, ERC721 {
 
     event Transfer(address indexed _from, address indexed _to, uint256 indexed _ticketId);
     event Approval(address indexed _owner, address indexed _approved, uint256 indexed _ticketId);
@@ -34,6 +34,7 @@ contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
     /* 1st TIME PURCHASE FROM PLATFORM - this is called when 1st time buyer presses the 'Purchase' button */
     function transferFrom(address payable _from, address _to, uint256 _ticketId) external payable notSeller(_ticketId) {
         require(msg.value == (tickets[_ticketId].price)*1 ether, "Not enough money."); /* Requires buyer to pay the price of ticket */
+        require(adToUserId[_to] > 0, "Please create an account first."); /* Requires user to have an account */
         _from.transfer((tickets[_ticketId].price)*1 ether);
         ticketsToOwner[_ticketId] = _to;
         ownerToQuantity[_from]--;
@@ -50,15 +51,15 @@ contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
     }
 
     /* SECONDARY MARKET - after the buyer is approved, seller presses 'Sell' button, and then the ticket's ownership gets transferred. Seller also gets money from contract. */
-    function transferAfterApproval(address payable _from, address _to, uint256 _ticketId) external payable ownsTicket(_ticketId) {
+    function resell(address _to, uint256 _ticketId) external payable ownsTicket(_ticketId) {
         require(approvedBuyers[_ticketId] == _to, "This is not an approved buyer."); /* Requires the transferee to be an approved buyer for the ticket */
-        _from.transfer((ticketIdToPending[_ticketId])*1 ether); /* Money gets transferred from contract to seller */
+        msg.sender.transfer(ticketIdToPending[_ticketId]); /* Money gets transferred from contract to seller */
         delete(ticketIdToPending[_ticketId]); /* Can be deleted as the mapping is no longer needed */
         delete(approvedBuyers[_ticketId]); /* Can be deleted as the mapping is no longer needed */
         ticketsToOwner[_ticketId] = _to;
-        ownerToQuantity[_from]--;
+        ownerToQuantity[msg.sender]--;
         ownerToQuantity[_to]++;
-        emit Transfer(_from, _to, _ticketId);
+        emit Transfer(msg.sender, _to, _ticketId);
     }
 
 }
