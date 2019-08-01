@@ -41,7 +41,7 @@ contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
         _;
     }
 
-    function getContractDeployer() public view returns (address) {
+  function getContractDeployer() public view returns (address) {
         return contractDeployer;
     }
 
