@@ -27,6 +27,8 @@ contract TicketCreationSimplified {
   mapping (address => uint256) adToUserId;
   /* Maps ticket IDs to user addresses */
   mapping (uint256 => address) ticketsToOwner;
+  /* Maps users to their number of tickets held */
+  mapping (address => uint16) ownerToQuantity;
 
   function accountCreation(string calldata _firstName, string calldata _lastName) external {
     uint256 userId = users.push(User(msg.sender, _firstName, _lastName));
@@ -38,6 +40,7 @@ contract TicketCreationSimplified {
     require(adToUserId[msg.sender] > 0, "Please create an account first."); /* Requires user to have an account */
     uint256 ticketId = tickets.push(Ticket(_eventName, _description, _price))-1;
     ticketsToOwner[ticketId] = msg.sender;
+    ownerToQuantity[msg.sender]++;
     emit NewTicket(ticketId, _eventName, _description, _price); /* Event emitter */
   }
 

@@ -23,6 +23,10 @@ contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
         _;
     }
 
+    function balanceOf(address _owner) external view returns (uint256){
+        return ownerToQuantity[_owner];
+    }
+
     function ownerOf(uint256 _ticketId) external view returns (address){
         return ticketsToOwner[_ticketId];
     }
@@ -32,15 +36,16 @@ contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
         require(msg.value == (tickets[_ticketId].price)*1 ether, "Not enough money."); /* Requires buyer to pay the price of ticket */
         _from.transfer((tickets[_ticketId].price)*1 ether);
         ticketsToOwner[_ticketId] = _to;
+        ownerToQuantity[_from]--;
+        ownerToQuantity[_to]++;
         emit Transfer(_from, _to, _ticketId);
     }
 
     /* SECONDARY MARKET - a person looking to resell his/her ticket can only sell to a willing/approved buyer. This function is called by buyer. */
-    function approve(address _approved, uint256 _ticketId, uint16 _newPrice) external payable notSeller(_ticketId){
-        tickets[_ticketId].price = _newPrice; /* New price is set, assuming seller and buyer agreed on a new price */
-        require(msg.value == (tickets[_ticketId].price)*1 ether, "Not enough money."); /* Requires buyer to pay the new price of ticket */
+    function approve(address _approved, uint256 _ticketId) external payable notSeller(_ticketId){
+        require(msg.value == (tickets[_ticketId].price)*1 ether, "Not enough money."); /* Requires buyer to pay the price of ticket */
         approvedBuyers[_ticketId] = _approved; /* Buyer approves him/herself for the ticket, goes into the approved buyer mapping */
-        ticketIdToPending[_ticketId] = _newPrice; /* Buyer's money gets stored in the contract, so we store it in a temp mapping */
+        ticketIdToPending[_ticketId] = msg.value; /* Buyer's money gets stored in the contract, so we store it in a temp mapping */
         emit Approval(ticketsToOwner[_ticketId], _approved, _ticketId);
     }
 
@@ -48,9 +53,11 @@ contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
     function transferAfterApproval(address payable _from, address _to, uint256 _ticketId) external payable ownsTicket(_ticketId) {
         require(approvedBuyers[_ticketId] == _to, "This is not an approved buyer."); /* Requires the transferee to be an approved buyer for the ticket */
         _from.transfer((ticketIdToPending[_ticketId])*1 ether); /* Money gets transferred from contract to seller */
-        delete(ticketIdToPending[_ticketId]); /* Can be deleted as the mapping is no longer needed for this ticket, gas refund */
-        delete(approvedByuers[_ticketId]); /* Can be deleted as the mapping is no longer needed for this ticket, gas refund */
+        delete(ticketIdToPending[_ticketId]); /* Can be deleted as the mapping is no longer needed */
+        delete(approvedBuyers[_ticketId]); /* Can be deleted as the mapping is no longer needed */
         ticketsToOwner[_ticketId] = _to;
+        ownerToQuantity[_from]--;
+        ownerToQuantity[_to]++;
         emit Transfer(_from, _to, _ticketId);
     }
 
