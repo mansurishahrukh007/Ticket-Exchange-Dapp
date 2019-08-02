@@ -50,6 +50,11 @@ contract TicketTransfer is TicketCreation, ERC721 {
         emit Approval(ticketsToOwner[_ticketId], _approved, _ticketId);
     }
 
+    /* Returning the approved buyer's address of a particular ticket ID */
+    function getApprovedBuyer(uint256 _ticketId) external view returns(address){
+        return approvedBuyers[_ticketId];
+    }
+
     /* SECONDARY MARKET - after the buyer is approved, seller presses 'Sell' button, and then the ticket's ownership gets transferred. Seller also gets money from contract. */
     function resell(address _to, uint256 _ticketId) external payable ownsTicket(_ticketId) {
         require(approvedBuyers[_ticketId] == _to, "This is not an approved buyer."); /* Requires the transferee to be an approved buyer for the ticket */
