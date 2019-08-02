@@ -4,6 +4,24 @@ import "./TicketCreation_simplified.sol";
 import "./erc721.sol";
 
 contract TicketTransfer is TicketCreation, ERC721 {
+    address contractDeployer;
+
+    constructor() public {
+        contractDeployer = msg.sender;
+
+        tickets.push(Ticket({eventName:"Event1", description:"Description1", price:1}));
+        tickets.push(Ticket({eventName:"Event2", description:"Description2", price:2}));
+        tickets.push(Ticket({eventName:"Event3", description:"Description3", price:3}));
+        tickets.push(Ticket({eventName:"Event4", description:"Description4", price:1}));
+        tickets.push(Ticket({eventName:"Event5", description:"Description5", price:2}));
+        tickets.push(Ticket({eventName:"Event6", description:"Description6", price:3}));
+        tickets.push(Ticket({eventName:"Event7", description:"Description7", price:4}));
+
+        for (uint i = 0; i < 7; i++) {
+            ticketsToOwner[i] = msg.sender;
+            ownerToQuantity[msg.sender]++;
+        }
+    }
 
     event Transfer(address indexed _from, address indexed _to, uint256 indexed _ticketId);
     event Approval(address indexed _owner, address indexed _approved, uint256 indexed _ticketId);
@@ -23,6 +41,14 @@ contract TicketTransfer is TicketCreation, ERC721 {
         _;
     }
 
+    function getContractDeployer() public view returns (address) {
+        return contractDeployer;
+    }
+
+    function getTicketCount() public view returns (uint256) {
+        return tickets.length;
+    }
+    
     function balanceOf(address _owner) external view returns (uint256){
         return ownerToQuantity[_owner];
     }
