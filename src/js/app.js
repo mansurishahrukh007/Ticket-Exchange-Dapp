@@ -1,21 +1,11 @@
 App = {
   web3Provider: null,
+  currentAccount: null,
+  ticketCounts: 0,
   contracts: {},
 
   init: async function () {
     $.getJSON('../tickets.json', function (data) {
-      // var ticketsRow = $('#ticketsRow');
-      // var ticketTemplate = $('#ticketTemplate');
-
-      // for (i = 0; i < data.length; i++) {
-      //   ticketTemplate.find('img').attr('src', data[i].picture);
-      //   ticketTemplate.find('.ticket-event').text(data[i].event);
-      //   ticketTemplate.find('.ticket-description').text(data[i].description);
-      //   ticketTemplate.find('.ticket-price').text(data[i].price);
-      //   ticketTemplate.find('.btn-purchase').attr('data-id', data[i].id);
-
-      //   ticketsRow.append(ticketTemplate.html());
-      // }
     });
 
     return await App.initWeb3();
@@ -43,6 +33,11 @@ App = {
     }
     web3 = new Web3(App.web3Provider);
 
+    web3.currentProvider.publicConfigStore.on('update', function (update) {
+      console.log('[accountChange called]', update);
+
+      App.updateUI();
+    });
     return App.initContract();
   },
 
@@ -60,6 +55,8 @@ App = {
 
         return ticketTransferInstance.getTicketCount.call();
       }).then(async function (ticketCounts) {
+        App.ticketCounts = ticketCounts;
+
         var ticketsRow = $('#ticketsRow');
         var ticketTemplate = $('#ticketTemplate');
         $.getJSON('../tickets.json', function (data) {
@@ -69,24 +66,12 @@ App = {
             ticketTemplate.find('.ticket-description').text(data[i].description);
             ticketTemplate.find('.ticket-price').text(data[i].price);
             ticketTemplate.find('.btn-purchase').attr('data-id', data[i].id);
+            ticketTemplate.find('.btn-approve').attr('data-id', data[i].id);
+            ticketTemplate.find('.btn-sell').attr('data-id', data[i].id);
             ticketsRow.append(ticketTemplate.html());
           }
         });
-
-        web3.eth.getAccounts(async function (error, accounts) {
-          if (error) {
-            console.log(error);
-          }
-          var to = accounts[0];
-          for (let i = 0; i < ticketCounts; i++) {
-            let ownerAddress = await ticketTransferInstance.ownerOf(i);
-            if (ownerAddress === to) {
-              $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchased').attr('disabled', true);
-            }
-            console.log(i, ownerAddress);
-          }
-        });
-
+        App.updateUI();
       }).catch(function (err) {
         console.log(err.message);
       });
@@ -95,8 +80,30 @@ App = {
     return App.bindEvents();
   },
 
+  updateUI: function () {
+    web3.eth.getAccounts(async function (error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+      App.currentAccount = accounts[0];
+      for (let i = 0; i < App.ticketCounts; i++) {
+        let ownerAddress = await ticketTransferInstance.ownerOf(i);
+        if (ownerAddress === App.currentAccount) {
+          $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchased').attr('disabled', true);
+          // $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', false);
+          // $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', false);
+        } else {
+          $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchase').attr('disabled', false);
+          // $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', true);
+          // $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', true);
+        }
+      }
+    });
+  },
   bindEvents: function () {
     $(document).on('click', '.btn-purchase', App.handlePurchase);
+    $(document).on('click', '.btn-approve', App.handleApprove);
+    $(document).on('click', '.btn-create-account', App.handleCreateAccount);
   },
 
   handlePurchase: function (event) {
@@ -109,38 +116,95 @@ App = {
 
     $.getJSON('../tickets.json', function (data) {
       var ticketPrice = data[ticketID].priceEther;
-      web3.eth.getAccounts(function (error, accounts) {
-        if (error) {
-          console.log(error);
-        }
 
-        var to = accounts[0];
-        console.log('[to]', to);
-        App.contracts.TicketTransfer.deployed().then(function (instance) {
-          ticketTransferInstance = instance;
-          return ticketTransferInstance.getContractDeployer.call();
-        }).then(function (ticketOwner) {
-          console.log('[ticket owner]', ticketOwner);
-          return ticketTransferInstance.transferFrom(ticketOwner, to, ticketID, {
-            from: to,
-            value: ticketPrice * 1000000000000000000
-          });
-        }).then(async function (response) {
-          console.log('[transferFrom response]', response);
-          for (let i = 0; i < 7; i++) {
-            let ownerAddress = await ticketTransferInstance.ownerOf(i);
-            if (ownerAddress === to) {
-              $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchased').attr('disabled', true);
-            }
-            console.log(i, ownerAddress);
-          }
-        }).catch(function (err) {
-          console.log(err.message);
+
+      App.contracts.TicketTransfer.deployed().then(function (instance) {
+        ticketTransferInstance = instance;
+        return ticketTransferInstance.getContractDeployer.call();
+      }).then(function (ticketOwner) {
+        console.log('[ticket owner]', ticketOwner);
+        return ticketTransferInstance.transferFrom(ticketOwner, App.currentAccount, ticketID, {
+          from: App.currentAccount,
+          value: web3.toWei(ticketPrice, "ether")
         });
+      }).then(async function (response) {
+        App.updateUI();
+      }).catch(function (err) {
+        console.log(err.message);
       });
     });
 
-  }
+  },
+  handleApprove: function (event) {
+    event.preventDefault();
+
+    var ticketID = parseInt($(event.target).data('id'));
+    console.log('[ticketID]', ticketID);
+
+    var ticketTransferInstance;
+
+    $.getJSON('../tickets.json', function (data) {
+      var ticketPrice = data[ticketID].priceEther;
+      console.log('ticket price', ticketPrice);
+      console.log('[currentaccount]', App.currentAccount);
+
+      App.contracts.TicketTransfer.deployed().then(function (instance) {
+        ticketTransferInstance = instance;
+        return ticketTransferInstance.approve(App.currentAccount, ticketID, {
+          from: App.currentAccount,
+          value: web3.toWei(ticketPrice, "ether")
+        });
+      }).then(async function (response) {
+        App.updateUI();
+      }).catch(function (err) {
+        console.log(err.message);
+      });
+    });
+
+  },
+  handleSell: function (event) {
+    event.preventDefault();
+
+    var ticketID = parseInt($(event.target).data('id'));
+    console.log('[ticketID]', ticketID);
+
+    var ticketTransferInstance;
+
+    $.getJSON('../tickets.json', function (data) {
+      var ticketPrice = data[ticketID].priceEther;
+      console.log('ticket price', ticketPrice);
+      console.log('[currentaccount]', App.currentAccount);
+
+      App.contracts.TicketTransfer.deployed().then(function (instance) {
+        ticketTransferInstance = instance;
+        return ticketTransferInstance.approve(App.currentAccount, ticketID, {
+          from: App.currentAccount,
+          value: web3.toWei(ticketPrice, "ether")
+        });
+      }).then(async function (response) {
+        App.updateUI();
+      }).catch(function (err) {
+        console.log(err.message);
+      });
+    });
+
+  },
+  handleCreateAccount: function (event) {
+    event.preventDefault();
+    var firstname = $('#firstname').val();
+    var lastname = $('#lastname').val();
+    console.log(firstname, lastname);
+
+    App.contracts.TicketTransfer.deployed().then(function (instance) {
+      ticketTransferInstance = instance;
+      return ticketTransferInstance.accountCreation(firstname.toString(), lastname.toString(), { from: App.currentAccount });
+    }).then(async function (response) {
+      console.log('account create response', response);
+      App.updateUI();
+    }).catch(function (err) {
+      console.log(err.message);
+    });
+  },
 
 };
 

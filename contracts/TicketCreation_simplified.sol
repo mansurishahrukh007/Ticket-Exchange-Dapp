@@ -33,7 +33,7 @@ contract TicketCreationSimplified {
   function accountCreation(string calldata _firstName, string calldata _lastName) external {
     uint256 userId = users.push(User(msg.sender, _firstName, _lastName));
     adToUserId[msg.sender] = userId;
-    emit NewAccount(userId, _firstName, _lastName); /* Event emitter */
+    // emit NewAccount(userId, _firstName, _lastName); /* Event emitter */
   }
 
   function createTicket(string calldata _eventName, string calldata _description, uint16 _price) external {
