@@ -32,12 +32,16 @@
         <div class="col-sm-8">
           <h1 class="text-center">Ticket Exchange Platform</h1>
         </div>
+        <div class="col-xs-2">
+          <button type="button" id="addnewticket" style="margin-top: 15px" class="btn btn-default btn-lg"
+            data-toggle="modal" data-target="#newticket">Add new Ticket</button>
+        </div>
       </div>
     </div>
     <hr />
     <br />
 
-    <!-- Modal -->
+    <!-- create account Modal -->
     <div id="myModal" class="modal fade" role="dialog">
       <div class="modal-dialog">
 
@@ -67,6 +71,38 @@
       </div>
     </div>
 
+    <!-- add new ticket Modal -->
+    <div id="newticket" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Add new ticket</h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="usr">Event Name</label>
+              <input type="text" class="form-control" id="new-name">
+            </div>
+            <div class="form-group">
+              <label for="pwd">Description</label>
+              <input type="text" class="form-control" id="new-description">
+            </div>
+            <div class="form-group">
+              <label for="pwd">Price</label>
+              <input type="number" placeholder="Price in ether" class="form-control" id="new-price">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary btn-create-ticket" data-dismiss="modal">Create
+              Ticket</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
 
     <div id="ticketsRow" class="row">
       <!-- TICKETS LOAD HERE -->
@@ -80,7 +116,8 @@
           <h3 class="panel-title">Scrappy</h3>
         </div> -->
         <div class="panel-body">
-          <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center" style="width: 100%;"
+          <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center"
+            style="width: 100%; max-height: 100px"
             src="https://www.tennislove.com/wp-content/uploads/2018/08/US-Open-2018-logo-1180x919.jpg"
             data-holder-rendered="true">
           <br /><br />
