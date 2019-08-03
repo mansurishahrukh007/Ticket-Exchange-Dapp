@@ -7,7 +7,11 @@ App = {
   init: async function () {
     $.getJSON('../tickets.json', function (data) {
     });
-
+    toastr.options.timeOut = 7000; // 1.5s
+    // toastr.info('Page Loaded!');
+    // $('#linkButton').click(function () {
+    //   toastr.success('Click Button');
+    // });
     return await App.initWeb3();
   },
 
@@ -19,8 +23,12 @@ App = {
         // Request account access
         await window.ethereum.enable();
       } catch (error) {
+
+        console.log('[error]', error);
+
         // User denied account access...
-        console.error("User denied account access")
+        console.error("User denied account access");
+        toastr.error("User denied account access");
       }
     }
     // Legacy dapp browsers...
@@ -34,15 +42,13 @@ App = {
     web3 = new Web3(App.web3Provider);
 
     web3.currentProvider.publicConfigStore.on('update', function (update) {
-      console.log('[accountChange called]', update);
-
       App.updateUI();
     });
     return App.initContract();
   },
 
   initContract: function () {
-    $.getJSON('TicketTransferSimplified.json', function (data) {
+    $.getJSON('TicketTransfer.json', function (data) {
       // Get the necessary contract artifact file and instantiate it with truffle-contract
       var TicketTransferArtifact = data;
       App.contracts.TicketTransfer = TruffleContract(TicketTransferArtifact);
@@ -73,7 +79,7 @@ App = {
         });
         App.updateUI();
       }).catch(function (err) {
-        console.log(err.message);
+        App.errorHandler(err);
       });
     });
 
@@ -88,14 +94,25 @@ App = {
       App.currentAccount = accounts[0];
       for (let i = 0; i < App.ticketCounts; i++) {
         let ownerAddress = await ticketTransferInstance.ownerOf(i);
+        let approvedBuyer = await ticketTransferInstance.getApprovedBuyer(i);
+        console.log(i, approvedBuyer);
+
         if (ownerAddress === App.currentAccount) {
           $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchased').attr('disabled', true);
-          // $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', false);
-          // $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', false);
+          $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', false);
+          $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', true);
         } else {
           $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchase').attr('disabled', false);
-          // $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', true);
-          // $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', true);
+          $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', true);
+          $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', false);
+        }
+
+        if (approvedBuyer !== '0x0000000000000000000000000000000000000000') {
+          if (approvedBuyer === App.currentAccount) {
+            $('.panel-ticket').eq(i).find('.btn-approve').text('Approved by me').attr('disabled', true);
+          } else {
+            $('.panel-ticket').eq(i).find('.btn-approve').text('Approved').attr('disabled', true);
+          }
         }
       }
     });
@@ -103,6 +120,7 @@ App = {
   bindEvents: function () {
     $(document).on('click', '.btn-purchase', App.handlePurchase);
     $(document).on('click', '.btn-approve', App.handleApprove);
+    $(document).on('click', '.btn-sell', App.handleSell);
     $(document).on('click', '.btn-create-account', App.handleCreateAccount);
   },
 
@@ -117,7 +135,6 @@ App = {
     $.getJSON('../tickets.json', function (data) {
       var ticketPrice = data[ticketID].priceEther;
 
-
       App.contracts.TicketTransfer.deployed().then(function (instance) {
         ticketTransferInstance = instance;
         return ticketTransferInstance.getContractDeployer.call();
@@ -128,9 +145,10 @@ App = {
           value: web3.toWei(ticketPrice, "ether")
         });
       }).then(async function (response) {
+        toastr.success('Ticket purchased successfully.');
         App.updateUI();
       }).catch(function (err) {
-        console.log(err.message);
+        App.errorHandler(err);
       });
     });
 
@@ -155,9 +173,13 @@ App = {
           value: web3.toWei(ticketPrice, "ether")
         });
       }).then(async function (response) {
+        if (response !== undefined) {
+          toastr.success('You became approved buyer of this ticket.');
+        }
+
         App.updateUI();
       }).catch(function (err) {
-        console.log(err.message);
+        App.errorHandler(err);
       });
     });
 
@@ -177,14 +199,19 @@ App = {
 
       App.contracts.TicketTransfer.deployed().then(function (instance) {
         ticketTransferInstance = instance;
-        return ticketTransferInstance.approve(App.currentAccount, ticketID, {
-          from: App.currentAccount,
-          value: web3.toWei(ticketPrice, "ether")
-        });
-      }).then(async function (response) {
+        return ticketTransferInstance.getApprovedBuyer(ticketID);
+      }).then(async function (approvedBuyer) {
+        if (approvedBuyer !== '0x0000000000000000000000000000000000000000') {
+          console.log('approved Buyer', approvedBuyer);
+          return ticketTransferInstance.resell(approvedBuyer, ticketID);
+        } else {
+          toastr.info('There is no approved buyer yet.');
+        }
+      }).then(function (response) {
+        console.log('response', response);
         App.updateUI();
       }).catch(function (err) {
-        console.log(err.message);
+        App.errorHandler(err);
       });
     });
 
@@ -200,12 +227,24 @@ App = {
       return ticketTransferInstance.accountCreation(firstname.toString(), lastname.toString(), { from: App.currentAccount });
     }).then(async function (response) {
       console.log('account create response', response);
+      if (response !== undefined) {
+        toastr.success('Account Created successfully.');
+      }
+
       App.updateUI();
     }).catch(function (err) {
-      console.log(err.message);
+      App.errorHandler(err);
     });
   },
-
+  errorHandler: function (err) {
+    console.log(err.message);
+    if (err.message.includes('Error: VM Exception while processing transaction: revert ')) {
+      toastr.error(err.message.split('Error: VM Exception while processing transaction: revert ')[1]);
+    }
+    if (err.message.includes('Error: MetaMask Tx Signature: ')) {
+      toastr.error(err.message.split('Error: MetaMask Tx Signature: ')[1]);
+    }
+  }
 };
 
 $(function () {
