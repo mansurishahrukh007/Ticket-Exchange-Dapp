@@ -1,10 +1,10 @@
 pragma solidity >=0.4.21 <0.6.0;
 
-contract TicketCreationSimplified {
+contract TicketCreation {
 
   /* Emit events when new accounts and new tickets have been created */
-  event NewAccount(uint256 indexed userId, string indexed firstName, string indexed lastName);
-  event NewTicket(uint256 indexed ticketId, string indexed eventName, string indexed description, uint16 price);
+  event NewAccount(uint256 indexed userId, string firstName, string lastName);
+  event NewTicket(uint256 indexed ticketId, string eventName, string description, uint16 price);
 
   /* Struct for User */
   struct User {

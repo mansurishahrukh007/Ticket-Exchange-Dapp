@@ -3,7 +3,7 @@ pragma solidity >=0.4.21 <0.6.0;
 import "./TicketCreation_simplified.sol";
 import "./erc721.sol";
 
-contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
+contract TicketTransfer is TicketCreation, ERC721 {
     address contractDeployer;
 
     constructor() public {
@@ -41,14 +41,14 @@ contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
         _;
     }
 
-  function getContractDeployer() public view returns (address) {
+    function getContractDeployer() public view returns (address) {
         return contractDeployer;
     }
 
     function getTicketCount() public view returns (uint256) {
         return tickets.length;
     }
-
+    
     function balanceOf(address _owner) external view returns (uint256){
         return ownerToQuantity[_owner];
     }
@@ -74,6 +74,11 @@ contract TicketTransferSimplified is TicketCreationSimplified, ERC721 {
         approvedBuyers[_ticketId] = _approved; /* Buyer approves him/herself for the ticket, goes into the approved buyer mapping */
         ticketIdToPending[_ticketId] = msg.value; /* Buyer's money gets stored in the contract, so we store it in a temp mapping */
         emit Approval(ticketsToOwner[_ticketId], _approved, _ticketId);
+    }
+
+    /* Returning the approved buyer's address of a particular ticket ID */
+    function getApprovedBuyer(uint256 _ticketId) external view returns(address){
+        return approvedBuyers[_ticketId];
     }
 
     /* SECONDARY MARKET - after the buyer is approved, seller presses 'Sell' button, and then the ticket's ownership gets transferred. Seller also gets money from contract. */
