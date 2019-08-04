@@ -37,7 +37,6 @@ contract TicketCreation {
   }
 
   function createTicket(string calldata _eventName, string calldata _description, uint16 _price) external {
-    require(adToUserId[msg.sender] > 0, "Please create an account first."); /* Requires user to have an account */
     uint256 ticketId = tickets.push(Ticket(_eventName, _description, _price))-1;
     ticketsToOwner[ticketId] = msg.sender;
     ownerToQuantity[msg.sender]++;
