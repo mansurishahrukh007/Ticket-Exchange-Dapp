@@ -79,8 +79,10 @@ App = {
 
       if (App.currentAccount !== App.contractDeployer) {
         $('#addnewticket').css("display", "none");
+        $('#addnewaccount').css("display", "initial");
       } else {
         $('#addnewticket').css("display", "initial");
+        $('#addnewaccount').css("display", "none");
       }
 
       for (let i = 0; i < App.ticketCounts; i++) {
@@ -99,6 +101,7 @@ App = {
           ticketTemplate.find('.ticket-price').text(`${currentTicket[2]} ether`);
           ticketTemplate.find('.btn-purchase').attr('data-id', i);
           ticketTemplate.find('.btn-approve').attr('data-id', i);
+          ticketTemplate.find('.btn-sell-final').attr('data-id', i);
           ticketTemplate.find('.btn-sell').attr('data-id', i);
           ticketsRow.append(ticketTemplate.html());
 
@@ -138,6 +141,7 @@ App = {
   bindEvents: function () {
     $(document).on('click', '.btn-purchase', App.handlePurchase);
     $(document).on('click', '.btn-approve', App.handleApprove);
+    $(document).on('click', '.btn-sell-final', App.handleSellFinal);
     $(document).on('click', '.btn-sell', App.handleSell);
     $(document).on('click', '.btn-create-account', App.handleCreateAccount);
     $(document).on('click', '.btn-create-ticket', App.handleCreateTicket);
@@ -179,15 +183,25 @@ App = {
   handleSell: function (event) {
     event.preventDefault();
     var ticketID = parseInt($(event.target).data('id'));
+    $(".modal-body #ticketID").val(ticketID);
+  },
+  handleSellFinal: function (event) {
+    event.preventDefault();
+    var ticketID = $('#ticketID').val();
+    var address = $('#address').val().toString().trim().toLowerCase();
+
     App.contractInstance.getApprovedBuyer(ticketID).then(async function (approvedBuyer) {
-      if (approvedBuyer !== '0x0000000000000000000000000000000000000000') {
+      console.log('approvedBuyer', approvedBuyer);
+      console.log('address', address);
+
+      if (approvedBuyer === address) {
         return App.contractInstance.resell(approvedBuyer, ticketID);
       } else {
-        toastr.info('There is no approved buyer yet.');
+        toastr.error('Wrong address, please try again.');
       }
     }).then(function (response) {
       if (response !== undefined) {
-        toastr.info('Ticket transfered to the approved buyer.');
+        toastr.success('Ticket transfered to the approved buyer.');
       }
       App.updateUI();
     }).catch(function (err) {
@@ -230,6 +244,7 @@ App = {
           ticketTemplate.find('.btn-purchase').attr('data-id', newTicketIndex);
           ticketTemplate.find('.btn-approve').attr('data-id', newTicketIndex);
           ticketTemplate.find('.btn-sell').attr('data-id', newTicketIndex);
+          ticketTemplate.find('.btn-sell-final').attr('data-id', newTicketIndex);
           ticketsRow.append(ticketTemplate.html());
 
           App.allTickets.push({

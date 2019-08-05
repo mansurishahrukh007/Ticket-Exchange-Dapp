@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <title>Ticket Exchange Platform</title>
+  <title>Decentralized Ticket Exchange Platform</title>
 
   <!-- Bootstrap -->
   <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -20,26 +20,25 @@
     <![endif]-->
 </head>
 
-<body>
+<body background="http://myeventnation.com/wp-content/uploads/2017/02/crowd-at-concert-2.jpg">
   <div class="container">
     <div class="row">
-      <div class="col-xs-12">
-        <div class="col-xs-2">
-          <button type="button" style="margin-top: 15px" class="btn btn-default btn-lg" data-toggle="modal"
-            data-target="#myModal">Create
-            Account</button>
-        </div>
-        <div class="col-sm-8">
-          <h1 class="text-center">Ticket Exchange Platform</h1>
-        </div>
-        <div class="col-xs-2">
-          <button type="button" id="addnewticket" style="margin-top: 15px" class="btn btn-default btn-lg"
-            data-toggle="modal" data-target="#newticket">Add new Ticket</button>
-        </div>
+      <div class="col-xs-2">
+        <img src=https://seeklogo.com/images/T/ticket-logo-8E95290676-seeklogo.com.png
+          style="width: 100px; margin-top: 19px">
+      </div>
+      <div class="col-sm-8">
+        <h1 class="text-center" style="margin-top: 45px">P2P Ticket Exchange Platform</h1>
+      </div>
+      <div class="col-xs-2">
+        <button type="button" id="addnewaccount" style="margin-top: 15px;display: none;" class="btn btn-default btn-lg"
+          data-toggle="modal" data-target="#myModal">Create
+          an account</button>
+        <button type="button" id="addnewticket" style="margin-top: 15px;display: none;" class="btn btn-default btn-lg"
+          data-toggle="modal" data-target="#newticket">Create a ticket</button>
       </div>
     </div>
     <hr />
-    <br />
 
     <!-- create account Modal -->
     <div id="myModal" class="modal fade" role="dialog">
@@ -103,35 +102,58 @@
       </div>
     </div>
 
+    <!-- Modal for sell button-->
+    <div id="mySell" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <!-- Modal for sell content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Enter buyer info</h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="usr">Address of buyer</label>
+              <input type="text" class="form-control" id="address">
+              <input type="hidden" class="form-control" id="ticketID">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary btn-sell-final" data-id="0" data-dismiss="modal">Sell</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div id="ticketsRow" class="row">
       <!-- TICKETS LOAD HERE -->
     </div>
-  </div>
 
-  <div id="ticketTemplate" style="display: none;">
-    <div class="col-sm-6 col-md-4 col-lg-4">
-      <div class="panel panel-default panel-ticket">
-        <!-- <div class="panel-heading">
-          <h3 class="panel-title">Scrappy</h3>
-        </div> -->
-        <div class="panel-body">
-          <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center"
-            style="width: 100%; max-height: 100px"
-            src="https://www.tennislove.com/wp-content/uploads/2018/08/US-Open-2018-logo-1180x919.jpg"
-            data-holder-rendered="true">
-          <br /><br />
-          <strong>Event Name</strong>: <span class="ticket-event">US Open</span><br />
-          <strong>Description</strong>: <span class="ticket-description">Front Row Seats</span><br />
-          <strong>Price</strong>: <span class="ticket-price">US$100</span><br /><br />
-          <button class="btn btn-default btn-purchase" type="button" data-id="0">Purchase</button>
-          <button class="btn btn-default btn-sell" type="button" data-id="0">Sell</button>
-          <button class="btn btn-default btn-approve" type="button" data-id="0">Approve</button>
+    <div id="ticketTemplate" style="display: none;">
+      <div class="col-sm-6 col-md-4 col-lg-4">
+        <div class="panel panel-default panel-ticket">
+          <!-- <div class="panel-heading">
+            <h3 class="panel-title">Scrappy</h3>
+          </div> -->
+          <div class="panel-body">
+            <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center"
+              style="width: 100%; max-height: 100px"
+              src="https://www.tennislove.com/wp-content/uploads/2018/08/US-Open-2018-logo-1180x919.jpg"
+              data-holder-rendered="true">
+            <br /><br />
+            <strong>Event Name</strong>: <span class="ticket-event">US Open</span><br />
+            <strong>Description</strong>: <span class="ticket-description">Front Row Seats</span><br />
+            <strong>Price</strong>: <span class="ticket-price">US$100</span><br /><br />
+            <button class="btn btn-default btn-purchase" type="button" data-id="0">Purchase</button>
+            <button class="btn btn-default btn-sell" data-toggle="modal" data-target="#mySell" type="button"
+              data-id="0">Sell</button>
+            <button class="btn btn-default btn-approve" type="button" data-id="0">Approve</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
-
 
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
