@@ -1,23 +1,15 @@
 App = {
   web3Provider: null,
+  currentAccount: null,
+  contractDeployer: null,
+  ticketCounts: 0,
+  imageCount: 6,
   contracts: {},
+  contractInstance: {},
+  allTickets: [],
 
   init: async function () {
-    $.getJSON('../tickets.json', function (data) {
-      // var ticketsRow = $('#ticketsRow');
-      // var ticketTemplate = $('#ticketTemplate');
-
-      // for (i = 0; i < data.length; i++) {
-      //   ticketTemplate.find('img').attr('src', data[i].picture);
-      //   ticketTemplate.find('.ticket-event').text(data[i].event);
-      //   ticketTemplate.find('.ticket-description').text(data[i].description);
-      //   ticketTemplate.find('.ticket-price').text(data[i].price);
-      //   ticketTemplate.find('.btn-purchase').attr('data-id', data[i].id);
-
-      //   ticketsRow.append(ticketTemplate.html());
-      // }
-    });
-
+    toastr.options.timeOut = 7000;
     return await App.initWeb3();
   },
 
@@ -29,8 +21,8 @@ App = {
         // Request account access
         await window.ethereum.enable();
       } catch (error) {
-        // User denied account access...
-        console.error("User denied account access")
+        console.error(error);
+        toastr.error("User denied account access");
       }
     }
     // Legacy dapp browsers...
@@ -43,11 +35,14 @@ App = {
     }
     web3 = new Web3(App.web3Provider);
 
+    web3.currentProvider.publicConfigStore.on('update', function (update) {
+      App.updateUI();
+    });
     return App.initContract();
   },
 
   initContract: function () {
-    $.getJSON('TicketTransferSimplified.json', function (data) {
+    $.getJSON('TicketTransfer.json', function (data) {
       // Get the necessary contract artifact file and instantiate it with truffle-contract
       var TicketTransferArtifact = data;
       App.contracts.TicketTransfer = TruffleContract(TicketTransferArtifact);
@@ -56,92 +51,224 @@ App = {
       App.contracts.TicketTransfer.setProvider(App.web3Provider);
 
       App.contracts.TicketTransfer.deployed().then(function (instance) {
-        ticketTransferInstance = instance;
+        App.contractInstance = instance;
 
-        return ticketTransferInstance.getTicketCount.call();
+        return App.contractInstance.getTicketCount.call();
       }).then(async function (ticketCounts) {
-        var ticketsRow = $('#ticketsRow');
-        var ticketTemplate = $('#ticketTemplate');
-        $.getJSON('../tickets.json', function (data) {
-          for (i = 0; i < ticketCounts; i++) {
-            ticketTemplate.find('img').attr('src', data[i].picture);
-            ticketTemplate.find('.ticket-event').text(data[i].event);
-            ticketTemplate.find('.ticket-description').text(data[i].description);
-            ticketTemplate.find('.ticket-price').text(data[i].price);
-            ticketTemplate.find('.btn-purchase').attr('data-id', data[i].id);
-            ticketsRow.append(ticketTemplate.html());
-          }
-        });
-
-        web3.eth.getAccounts(async function (error, accounts) {
-          if (error) {
-            console.log(error);
-          }
-          var to = accounts[0];
-          for (let i = 0; i < ticketCounts; i++) {
-            let ownerAddress = await ticketTransferInstance.ownerOf(i);
-            if (ownerAddress === to) {
-              $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchased').attr('disabled', true);
-            }
-            console.log(i, ownerAddress);
-          }
-        });
-
+        App.ticketCounts = Number(ticketCounts);
+        App.updateUI();
       }).catch(function (err) {
-        console.log(err.message);
+        App.errorHandler(err);
       });
     });
 
     return App.bindEvents();
   },
 
+  updateUI: function () {
+    web3.eth.getAccounts(async function (error, accounts) {
+      if (error) {
+        console.error(error);
+        App.errorHandler(error.message);
+      }
+      App.currentAccount = accounts[0];
+
+      if (App.contractDeployer === null) {
+        App.contractDeployer = await App.contractInstance.getContractDeployer.call();
+      }
+
+      if (App.currentAccount !== App.contractDeployer) {
+        $('#addnewticket').css("display", "none");
+        $('#addnewaccount').css("display", "initial");
+      } else {
+        $('#addnewticket').css("display", "initial");
+        $('#addnewaccount').css("display", "none");
+      }
+
+      for (let i = 0; i < App.ticketCounts; i++) {
+        let ownerAddress = await App.contractInstance.ownerOf(i);
+        let approvedBuyer = await App.contractInstance.getApprovedBuyer(i);
+
+        if (App.allTickets.length !== App.ticketCounts) {
+          let currentTicket = await App.contractInstance.tickets(i);
+
+          var ticketsRow = $('#ticketsRow');
+          var ticketTemplate = $('#ticketTemplate');
+
+          ticketTemplate.find('img').attr('src', `images/tickets/${i % App.imageCount}.jpeg`);
+          ticketTemplate.find('.ticket-event').text(currentTicket[0]);
+          ticketTemplate.find('.ticket-description').text(currentTicket[1]);
+          ticketTemplate.find('.ticket-price').text(`${currentTicket[2]} ether`);
+          ticketTemplate.find('.btn-purchase').attr('data-id', i);
+          ticketTemplate.find('.btn-approve').attr('data-id', i);
+          ticketTemplate.find('.btn-sell-final').attr('data-id', i);
+          ticketTemplate.find('.btn-sell').attr('data-id', i);
+          ticketsRow.append(ticketTemplate.html());
+
+          App.allTickets.push({
+            name: currentTicket[0],
+            description: currentTicket[1],
+            price: Number(currentTicket[2]),
+          });
+        }
+
+        if (ownerAddress === App.currentAccount) {
+          $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchased').attr('disabled', true);
+          $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', false);
+          $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', true);
+        } else {
+          $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', true);
+          $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', false);
+          if (ownerAddress !== App.contractDeployer) {
+            $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchased').attr('disabled', true);
+          } else {
+            $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchase').attr('disabled', false);
+            $('.panel-ticket').eq(i).find('.btn-sell').text('Sell').attr('disabled', true);
+            $('.panel-ticket').eq(i).find('.btn-approve').text('Approve').attr('disabled', true);
+          }
+        }
+
+        if (approvedBuyer !== '0x0000000000000000000000000000000000000000') {
+          if (approvedBuyer === App.currentAccount) {
+            $('.panel-ticket').eq(i).find('.btn-approve').text('Approved by me').attr('disabled', true);
+          } else {
+            $('.panel-ticket').eq(i).find('.btn-approve').text('Approved').attr('disabled', true);
+          }
+        }
+      }
+    });
+  },
   bindEvents: function () {
     $(document).on('click', '.btn-purchase', App.handlePurchase);
+    $(document).on('click', '.btn-approve', App.handleApprove);
+    $(document).on('click', '.btn-sell-final', App.handleSellFinal);
+    $(document).on('click', '.btn-sell', App.handleSell);
+    $(document).on('click', '.btn-create-account', App.handleCreateAccount);
+    $(document).on('click', '.btn-create-ticket', App.handleCreateTicket);
   },
 
   handlePurchase: function (event) {
     event.preventDefault();
+    var ticketID = parseInt($(event.target).data('id'));
+    var ticketPrice = App.allTickets[ticketID].price;
+    App.contractInstance.transferFrom(App.contractDeployer, App.currentAccount, ticketID, {
+      from: App.currentAccount,
+      value: web3.toWei(ticketPrice, "ether")
+    }).then(async function (response) {
+      if (response !== undefined) {
+        toastr.success('Ticket purchased successfully.');
+      }
+      App.updateUI();
+    }).catch(function (err) {
+      App.errorHandler(err);
+    });
+  },
+  handleApprove: function (event) {
+    event.preventDefault();
 
     var ticketID = parseInt($(event.target).data('id'));
-    console.log('[ticketID]', ticketID);
+    var ticketPrice = App.allTickets[ticketID].price;
+    App.contractInstance.approve(App.currentAccount, ticketID, {
+      from: App.currentAccount,
+      value: web3.toWei(ticketPrice, "ether")
+    }).then(async function (response) {
+      if (response !== undefined) {
+        toastr.success('You became approved buyer of this ticket.');
+      }
+      App.updateUI();
+    }).catch(function (err) {
+      App.errorHandler(err);
+    });
+  },
+  handleSell: function (event) {
+    event.preventDefault();
+    var ticketID = parseInt($(event.target).data('id'));
+    $(".modal-body #ticketID").val(ticketID);
+  },
+  handleSellFinal: function (event) {
+    event.preventDefault();
+    var ticketID = $('#ticketID').val();
+    var address = $('#address').val().toString().trim().toLowerCase();
 
-    var ticketTransferInstance;
+    App.contractInstance.getApprovedBuyer(ticketID).then(async function (approvedBuyer) {
+      console.log('approvedBuyer', approvedBuyer);
+      console.log('address', address);
 
-    $.getJSON('../tickets.json', function (data) {
-      var ticketPrice = data[ticketID].priceEther;
-      web3.eth.getAccounts(function (error, accounts) {
-        if (error) {
-          console.log(error);
+      if (approvedBuyer === address) {
+        return App.contractInstance.resell(approvedBuyer, ticketID);
+      } else {
+        toastr.error('Wrong address, please try again.');
+      }
+    }).then(function (response) {
+      if (response !== undefined) {
+        toastr.success('Ticket transfered to the approved buyer.');
+      }
+      App.updateUI();
+    }).catch(function (err) {
+      App.errorHandler(err);
+    });
+  },
+  handleCreateAccount: function (event) {
+    event.preventDefault();
+    var firstname = $('#firstname').val();
+    var lastname = $('#lastname').val();
+    App.contractInstance.accountCreation(firstname.toString(), lastname.toString(),
+      { from: App.currentAccount }).then(async function (response) {
+        if (response !== undefined) {
+          toastr.success('Account Created successfully.');
         }
 
-        var to = accounts[0];
-        console.log('[to]', to);
-        App.contracts.TicketTransfer.deployed().then(function (instance) {
-          ticketTransferInstance = instance;
-          return ticketTransferInstance.getContractDeployer.call();
-        }).then(function (ticketOwner) {
-          console.log('[ticket owner]', ticketOwner);
-          return ticketTransferInstance.transferFrom(ticketOwner, to, ticketID, {
-            from: to,
-            value: ticketPrice * 1000000000000000000
-          });
-        }).then(async function (response) {
-          console.log('[transferFrom response]', response);
-          for (let i = 0; i < 7; i++) {
-            let ownerAddress = await ticketTransferInstance.ownerOf(i);
-            if (ownerAddress === to) {
-              $('.panel-ticket').eq(i).find('.btn-purchase').text('Purchased').attr('disabled', true);
-            }
-            console.log(i, ownerAddress);
-          }
-        }).catch(function (err) {
-          console.log(err.message);
-        });
+        App.updateUI();
+      }).catch(function (err) {
+        App.errorHandler(err);
       });
+  },
+  handleCreateTicket: function (event) {
+    event.preventDefault();
+    var name = $('#new-name').val().toString();
+    var description = $('#new-description').val().toString();
+    var price = Number($('#new-price').val());
+    App.contractInstance.createTicket(name, description, price).then(async function (response) {
+      if (response !== undefined) {
+        let newTicket = await App.contractInstance.tickets(App.ticketCounts);
+        let newTicketIndex = App.ticketCounts;
+        if (newTicket !== undefined) {
+          App.ticketCounts++;
+          var ticketsRow = $('#ticketsRow');
+          var ticketTemplate = $('#ticketTemplate');
+
+          ticketTemplate.find('img').attr('src', `images/tickets/${newTicketIndex % App.imageCount}.jpeg`);
+          ticketTemplate.find('.ticket-event').text(newTicket[0]);
+          ticketTemplate.find('.ticket-description').text(newTicket[1]);
+          ticketTemplate.find('.ticket-price').text(`${newTicket[2]} ether`);
+          ticketTemplate.find('.btn-purchase').attr('data-id', newTicketIndex);
+          ticketTemplate.find('.btn-approve').attr('data-id', newTicketIndex);
+          ticketTemplate.find('.btn-sell').attr('data-id', newTicketIndex);
+          ticketTemplate.find('.btn-sell-final').attr('data-id', newTicketIndex);
+          ticketsRow.append(ticketTemplate.html());
+
+          App.allTickets.push({
+            name: newTicket[0],
+            description: newTicket[1],
+            price: Number(newTicket[2]),
+          });
+        }
+        toastr.success('Ticket Created successfully.');
+      }
+      App.updateUI();
+    }).catch(function (err) {
+      App.errorHandler(err);
     });
-
+  },
+  errorHandler: function (err) {
+    console.error(err);
+    if (err.message.includes('Error: VM Exception while processing transaction: revert ')) {
+      toastr.error(err.message.split('Error: VM Exception while processing transaction: revert ')[1]);
+    }
+    if (err.message.includes('Error: MetaMask Tx Signature: ')) {
+      toastr.error(err.message.split('Error: MetaMask Tx Signature: ')[1]);
+    }
   }
-
 };
 
 $(function () {
