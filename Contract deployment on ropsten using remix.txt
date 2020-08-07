@@ -1,0 +1,49 @@
+Agenda of the video
+1) Deployment of Ballot.sol contract on ropsten testnet using remix.
+2) Functionality of the contract using 4 different ropsten accounts.
+3) Managing 4 different metamask accounts and interact with contract.
+
+Tools/Technologies used
+Testnet: Ropsten
+Wallet Manager: Metamask
+Smart Contract: Ballot.sol
+Smart Contract IDE: Remix
+Browsers: Chrome, Firefox and Brave
+
+Accounts Details
+	- On Chrome: 1) Contract Deployer: 0x572e10Bf22008d8dE5d864098AaDFbC555a7aC84
+
+	- On Firfox: 2) Voter 1: 0x6Ee9e5C77acB039586C26c3F6b000667c83E8e3A
+	
+	- On Brave: 3) Voter 2: 0xE597B350aC4b146C86B70616805A3Ce98DdC791d
+		       Voter 3: 0x2e66749E6828Ec3fEae1c19c1d560C80b2098F0e
+
+Deployed Contract Address
+0x1ed29c42610f54e6359b7ad8756a129bfcc2197a
+
+Quick Video Summary
+1) Time 00:00:00 - 00:00:25
+	- Showing the all 4 voters, Contract Deployer, Voter 1, Voter 2 and Voter 3.
+
+2) Time 00:00:26 - 00:01:24
+	- Contract deployment on ropsten testnet.
+	- Verification of contract depoyment on etherscan.
+	- Showing deployed contract's functions and contract address.
+
+3) Time 00:01:25 - 00:04:15
+	- Giving the voting rights to Voter 1, Voter 2 and Voter 3.
+
+4) Time 00:04:15 - 00:05:50
+	- Contract Deployer voted to proposal 7.
+	- Showing the winning proposal in the all accounts.
+
+5) Time 00:05:51 - 00:07:07
+	- Voter 1 voted to proposal 5.
+	- Showing the winning proposal in the all accounts.
+
+6) Time 00:07:07 - 00:08:10
+	- Voter 3 delegates his voting rights to Voter 2.
+
+7) Time 00:08:11 - 00:09:00
+	- Voter 2 voted to proposal 9.
+	- Showing the winning proposal in the all accounts.

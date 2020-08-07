@@ -1,0 +1,183 @@
+etherscan
+https://rinkeby.etherscan.io
+
+infura
+https://infura.io
+
+client's wallet address
+0x572e10Bf22008d8dE5d864098AaDFbC555a7aC84
+
+private key
+00E5A5AC8CC48EE31EEE530B5D15A223F5045BFCFD42CDB7FACBA389749A5BA6
+
+contract address
+0xd95c4d57f160dCFEbc0FD33Be781a1E736771deE
+
+
+new contract address
+0x2168297bf1D5074C0DF59D6A009f0001040A26D7
+  
+  
+Steps to run ballot contract in terminal
+  truffle console --network rinkeby
+
+ 1. initialize contract instance  
+	Ballot.deployed().then(function(instance){app = instance;})
+	
+ 2. check contract address is the same or not
+	app.address
+
+ 3. app.vote(2)
+ 
+ 4. app.winningProposal()
+ 
+ 5. app.giveRightToVote("0x4Da6e76BdBdA3De5D2B59D323805Be7e826859A8")
+ 
+ 6. app.delegate("0x4Da6e76BdBdA3De5D2B59D323805Be7e826859A8")
+ 
+ 
+ 
+ web3.eth.accounts.create()
+ 
+ { address: '0x293261D2553E0A7324a42a19ecB0E1957FE3BA81',
+  privateKey: '0x9a4917ee5391473fddb6471fb95c75aa93fefa4d4d8201431e86917873f12d0c',
+  signTransaction: [Function: signTransaction],
+  sign: [Function: sign],
+  encrypt: [Function: encrypt] }
+  
+  
+  
+  
+  
+  Notes
+  1) use remix to showcase working of smart contract 
+  2) multiple browsers for demo purchase
+  3) different wallets
+  4) get fake ethers from faucets
+  5) implement contract using remix
+  6) shortnote and video
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+https://rinkeby.etherscan.io/address/0x572e10bf22008d8de5d864098aadfbc555a7ac84
+
+https://medium.com/@mvmurthy/ethereum-for-web-developers-890be23d1d0c
+
+https://medium.com/@mvmurthy/full-stack-hello-world-voting-ethereum-dapp-tutorial-part-1-40d2d0d807c2
+
+https://medium.com/@mvmurthy/full-stack-hello-world-voting-ethereum-dapp-tutorial-part-2-30b3d335aa1f
+
+https://www.cryptocompare.com/mining/guides/how-to-mine-ethereum/
+
+https://medium.com/@andresaaap/how-to-deploy-a-smart-contract-on-a-public-test-network-rinkeby-using-infura-truffle-8e19253870c4
+
+to get free ether on your rinkeby account
+https://faucet.rinkeby.io/
+
+
+ropsten 
+https://medium.com/bitfwd/get-ropsten-ethereum-the-easy-way-f2d6ece21763
+test account:-  0x9c60517a247caD32203cd6DfB7B698a34E611C61 1 eth
+0x4Da6e76BdBdA3De5D2B59D323805Be7e826859A8 1 eth
+0x27AC659136BBbD9fa584D65Fd39132Ef3D86A84F 1 eth
+0x67629bA1cB2CF4382b77b1092B0517f88446aa97 1 eth
+0x5E68DD1106136bec3fa5EBFdE6fC223848D56b41 1 eth
+
+meta mask account 1
+0x6Ee9e5C77acB039586C26c3F6b000667c83E8e3A
+
+D7DBEBADAA52231281F5875640CF37D81CE01700D632B279710738000280FCD5
+
+account 2
+0x2e66749E6828Ec3fEae1c19c1d560C80b2098F0e
+
+client wallet address
+0x572e10Bf22008d8dE5d864098AaDFbC555a7aC84
+
+meta mask secret code
+winner net light more mansion salt senior chest enjoy turn cricket antique
+
+
+
+delegate to give vote right to other voter
+
+function returnVoters(address _voter) public returns (uint, bool, uint8, address) {
+	return (voters[_voter].weight, voters[_voter].voted, voters[_voter].vote, voters[_voter].delegate);
+}
+ 
+ 
+ mother wallet voted 7
+ 
+ account 1 voted 5
+ 
+ account 2 voted 7
+ 
+ 
+ http://142.4.215.64:8288/stream?type=http&nocache=1892
+ this.baseUrl + "/stream?type=http&nocache=1892" 
+ this.configuration.baseUrl + "/currentsong"
+ 
+ http://142.4.215.64:8288/currentsong
+ 
+ 2732 splash screen
+ 1024 app icon
+ 
+ password
+ RmbRadio#2019
+ 
+ 
+<preference name="SplashScreenDelay" value="3000" />
+
+
+edf6fc
+
+5b8eda
+
+
+
+#adc6ec
+#bdd1f0
+#cdddf3  selected
+#dee8f7
+#eef3fb
+
+
+https://romannurik.github.io/AndroidAssetStudio/icons-launcher.html#foreground.type=image&foreground.space.trim=1&foreground.space.pad=0.25&foreColor=rgb(238%2C%20243%2C%20251)&backColor=rgb(91%2C%20142%2C%20218)&crop=0&backgroundShape=circle&effects=none&name=ic_launcher
+
+
+https://romannurik.github.io/AndroidAssetStudio/
+
+https://onlinepngtools.com/create-transparent-png
+
+https://ethereumbuilders.gitbooks.io/guide/content/en/solidity_tutorials.html
+
+https://www.allcode.com/ethereum-truffle-pet-shop-dapp/
+
+https://github.com/joel-maws/truffle-pet-shop
+
+https://medium.com/crowdbotics/building-ethereum-dapps-with-meta-mask-9bd0685dfd57
+
+https://medium.com/coinmonks/deploying-ethereum-dapp-rest-api-on-aws-lambda-using-node-js-web3-beta-and-infura-513cc92a9de5
+
+https://www.trufflesuite.com/tutorials/pet-shop
+
+https://hostpresto.com/nodejs-hosting/
+
+https://www.namecheap.com/support/knowledgebase/article.aspx/10040/2210/how-to-use-manage-shell-in-cpanel
+
+https://www.namecheap.com/support/knowledgebase/article.aspx/9363/2180/how-to-create-and-maintain-mysql-databases-in-cpanel
+
+https://www.namecheap.com/support/knowledgebase/article.aspx/10047/2182/how-to-work-with-nodejs-app
+
+https://akveo.github.io/ngx-admin/docs/getting-started/installation-guidelines#install-ngxadmin
+
+http://masteringionic.com/blog/2018-01-23-importing-exporting-sqlite-data-for-ionic-framework-mobile-apps/
